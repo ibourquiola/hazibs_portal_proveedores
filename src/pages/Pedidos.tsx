@@ -21,7 +21,8 @@ type OrderStatus = "pendiente" | "confirmado";
 
 interface OrderWithOffer {
   id: string;
-  offer_id: string;
+  order_number: string;
+  offer_id: string | null;
   units: number;
   term: string;
   price_euros: number;
@@ -47,6 +48,7 @@ const Pedidos = () => {
       .from("offer_applications")
       .select(`
         id,
+        order_number,
         offer_id,
         units,
         term,
@@ -156,6 +158,12 @@ const Pedidos = () => {
                     <TableHead className="font-semibold">
                       <div className="flex items-center gap-2">
                         <Hash className="w-4 h-4" />
+                        Nº Pedido
+                      </div>
+                    </TableHead>
+                    <TableHead className="font-semibold">
+                      <div className="flex items-center gap-2">
+                        <Hash className="w-4 h-4" />
                         Nº Oferta
                       </div>
                     </TableHead>
@@ -196,9 +204,12 @@ const Pedidos = () => {
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <TableCell className="font-mono font-medium text-primary">
+                        {order.order_number}
+                      </TableCell>
+                      <TableCell className="font-mono text-muted-foreground">
                         {order.offers?.offer_number || "-"}
                       </TableCell>
-                      <TableCell className="max-w-md">
+                      <TableCell className="max-w-xs">
                         <p className="truncate">{order.offers?.description || "-"}</p>
                       </TableCell>
                       <TableCell className="text-center font-medium">
@@ -220,12 +231,21 @@ const Pedidos = () => {
                       <TableCell className="text-center">
                         <Button
                           size="sm"
-                          variant="outline"
+                          variant={order.status === "pendiente" ? "default" : "outline"}
                           className="gap-2"
                           onClick={() => handleViewClick(order)}
                         >
-                          <Eye className="w-4 h-4" />
-                          Ver detalle
+                          {order.status === "pendiente" ? (
+                            <>
+                              <CheckCircle2 className="w-4 h-4" />
+                              Confirmar pedido
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="w-4 h-4" />
+                              Ver detalle
+                            </>
+                          )}
                         </Button>
                       </TableCell>
                     </TableRow>

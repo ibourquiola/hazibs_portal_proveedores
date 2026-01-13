@@ -21,7 +21,8 @@ type OrderStatus = "pendiente" | "confirmado";
 
 interface OrderWithOffer {
   id: string;
-  offer_id: string;
+  order_number: string;
+  offer_id: string | null;
   units: number;
   term: string;
   price_euros: number;
@@ -235,10 +236,13 @@ export const OrderDetailModal = ({
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between gap-4">
-            <span>Pedido - Oferta {order.offers?.offer_number || "-"}</span>
+            <span>Pedido {order.order_number}</span>
             {getStatusBadge()}
           </DialogTitle>
           <DialogDescription>
+            {order.offers?.offer_number && (
+              <span className="block mb-1">Oferta relacionada: {order.offers.offer_number}</span>
+            )}
             {isEditing 
               ? "Modifica los datos del pedido" 
               : order.status === "pendiente" 

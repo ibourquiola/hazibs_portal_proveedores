@@ -92,13 +92,13 @@ export const ApplyOfferModal = ({
         return;
       }
 
-      const { error: insertError } = await supabase.from("offer_applications").insert({
+      const { error: insertError } = await supabase.from("offer_applications").insert([{
         offer_id: offer.id,
         user_id: user.id,
         units: parseInt(units, 10),
         term: term.trim(),
         price_euros: parseFloat(priceEuros),
-      });
+      }]);
 
       if (insertError) {
         throw insertError;
