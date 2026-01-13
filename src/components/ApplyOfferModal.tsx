@@ -12,21 +12,29 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
+import { Loader2, Package, Calendar, FileText } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+
+interface Offer {
+  id: string;
+  offer_number: string;
+  description: string;
+  minimum_units: number;
+  deadline: string | null;
+}
 
 interface ApplyOfferModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  offerId: string;
-  offerNumber: string;
+  offer: Offer;
   onSuccess: () => void;
 }
 
 export const ApplyOfferModal = ({
   open,
   onOpenChange,
-  offerId,
-  offerNumber,
+  offer,
   onSuccess,
 }: ApplyOfferModalProps) => {
   const [units, setUnits] = useState("");
@@ -85,7 +93,7 @@ export const ApplyOfferModal = ({
       }
 
       const { error } = await supabase.from("offer_applications").insert({
-        offer_id: offerId,
+        offer_id: offer.id,
         user_id: user.id,
         units: parseInt(units, 10),
         term: term.trim(),
@@ -98,7 +106,7 @@ export const ApplyOfferModal = ({
 
       toast({
         title: "Aplicación enviada",
-        description: `Has aplicado correctamente a la oferta ${offerNumber}.`,
+        description: `Has aplicado correctamente a la oferta ${offer.offer_number}.`,
       });
 
       // Reset form and close
@@ -130,13 +138,41 @@ export const ApplyOfferModal = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Aplicar a Oferta</DialogTitle>
+          <DialogTitle>Aplicar a Oferta {offer.offer_number}</DialogTitle>
           <DialogDescription>
-            Completa los datos para aplicar a la oferta <strong>{offerNumber}</strong>
+            Revisa las condiciones y completa tu propuesta
           </DialogDescription>
         </DialogHeader>
+
+        {/* Offer details section */}
+        <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
+          <h4 className="font-medium text-sm text-foreground flex items-center gap-2">
+            <FileText className="w-4 h-4 text-primary" />
+            Condiciones de la Oferta
+          </h4>
+          <p className="text-sm text-muted-foreground">{offer.description}</p>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <Package className="w-4 h-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Uds. mínimas:</span>
+              <span className="font-medium text-foreground">
+                {offer.minimum_units.toLocaleString("es-ES")}
+              </span>
+            </div>
+            {offer.deadline && (
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Deadline:</span>
+                <span className="font-medium text-foreground">
+                  {format(new Date(offer.deadline), "dd MMM yyyy", { locale: es })}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="units">Unidades *</Label>
