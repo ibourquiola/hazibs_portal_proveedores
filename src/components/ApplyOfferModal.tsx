@@ -92,7 +92,7 @@ export const ApplyOfferModal = ({
         return;
       }
 
-      const { error } = await supabase.from("offer_applications").insert({
+      const { error: insertError } = await supabase.from("offer_applications").insert({
         offer_id: offer.id,
         user_id: user.id,
         units: parseInt(units, 10),
@@ -100,8 +100,18 @@ export const ApplyOfferModal = ({
         price_euros: parseFloat(priceEuros),
       });
 
-      if (error) {
-        throw error;
+      if (insertError) {
+        throw insertError;
+      }
+
+      // Update offer status to "aplicada"
+      const { error: updateError } = await supabase
+        .from("offers")
+        .update({ status: "aplicada" })
+        .eq("id", offer.id);
+
+      if (updateError) {
+        console.error("Error updating offer status:", updateError);
       }
 
       toast({
