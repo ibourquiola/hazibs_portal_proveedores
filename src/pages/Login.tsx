@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Lock, Mail, LogIn, ArrowLeft } from "lucide-react";
+import { Lock, Mail, ArrowLeft } from "lucide-react";
+import logoHbs from "@/assets/logo-hbs.png";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -79,9 +80,7 @@ const Login = () => {
       <div className="w-full max-w-md relative z-10 animate-fade-in">
         {/* Logo and header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary shadow-lg mb-4">
-            <Building2 className="w-8 h-8 text-primary-foreground" />
-          </div>
+          <img src={logoHbs} alt="HBS Logo" className="h-16 w-auto mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-foreground">Portal de Proveedores</h1>
           <p className="text-muted-foreground mt-2">Gestiona tus ofertas de forma eficiente</p>
         </div>
@@ -181,7 +180,7 @@ const Login = () => {
         </Card>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          © 2024 Portal de Proveedores. Todos los derechos reservados.
+          © 2026 Hazi Business Solutions. Todos los derechos reservados.
         </p>
       </div>
     </div>
