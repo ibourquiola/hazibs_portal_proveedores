@@ -216,8 +216,7 @@ const Ofertas = () => {
         <ApplyOfferModal
           open={modalOpen}
           onOpenChange={setModalOpen}
-          offerId={selectedOffer.id}
-          offerNumber={selectedOffer.offer_number}
+          offer={selectedOffer}
           onSuccess={handleApplicationSuccess}
         />
       )}
