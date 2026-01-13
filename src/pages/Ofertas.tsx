@@ -12,8 +12,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Package, Hash, Calendar, Send } from "lucide-react";
+import { FileText, Package, Hash, Calendar, Send, Eye } from "lucide-react";
 import { ApplyOfferModal } from "@/components/ApplyOfferModal";
+import { ViewOfferModal } from "@/components/ViewOfferModal";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -33,7 +34,8 @@ const Ofertas = () => {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
 
   const fetchOffers = async () => {
     const { data, error } = await supabase
@@ -84,11 +86,52 @@ const Ofertas = () => {
 
   const handleApplyClick = (offer: Offer) => {
     setSelectedOffer(offer);
-    setModalOpen(true);
+    setApplyModalOpen(true);
   };
 
-  const handleApplicationSuccess = () => {
+  const handleViewClick = (offer: Offer) => {
+    setSelectedOffer(offer);
+    setViewModalOpen(true);
+  };
+
+  const handleSuccess = () => {
     fetchOffers();
+  };
+
+  const renderActionButton = (offer: Offer) => {
+    switch (offer.status) {
+      case "abierta":
+        return (
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-2"
+            onClick={() => handleApplyClick(offer)}
+          >
+            <Send className="w-4 h-4" />
+            Aplicar oferta
+          </Button>
+        );
+      case "aplicada":
+        return (
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-2"
+            onClick={() => handleViewClick(offer)}
+          >
+            <Eye className="w-4 h-4" />
+            Ver oferta
+          </Button>
+        );
+      case "aceptada":
+      case "rechazada":
+        return (
+          <span className="text-sm text-muted-foreground">—</span>
+        );
+      default:
+        return null;
+    }
   };
 
   if (loading) {
@@ -193,15 +236,7 @@ const Ofertas = () => {
                         {getStatusBadge(offer.status)}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="gap-2"
-                          onClick={() => handleApplyClick(offer)}
-                        >
-                          <Send className="w-4 h-4" />
-                          Aplicar oferta
-                        </Button>
+                        {renderActionButton(offer)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -213,12 +248,20 @@ const Ofertas = () => {
       </Card>
 
       {selectedOffer && (
-        <ApplyOfferModal
-          open={modalOpen}
-          onOpenChange={setModalOpen}
-          offer={selectedOffer}
-          onSuccess={handleApplicationSuccess}
-        />
+        <>
+          <ApplyOfferModal
+            open={applyModalOpen}
+            onOpenChange={setApplyModalOpen}
+            offer={selectedOffer}
+            onSuccess={handleSuccess}
+          />
+          <ViewOfferModal
+            open={viewModalOpen}
+            onOpenChange={setViewModalOpen}
+            offer={selectedOffer}
+            onSuccess={handleSuccess}
+          />
+        </>
       )}
     </>
   );
