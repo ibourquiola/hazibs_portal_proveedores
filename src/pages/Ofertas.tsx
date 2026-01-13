@@ -274,7 +274,7 @@ const Ofertas = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Filters */}
-          <div className="flex flex-wrap gap-3 items-end p-4 bg-muted/30 rounded-lg border">
+          <div className="flex flex-wrap gap-3 items-center p-4 bg-muted/30 rounded-lg border">
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <Filter className="w-4 h-4" />
               Filtros:
