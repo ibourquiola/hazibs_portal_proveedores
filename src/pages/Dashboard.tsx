@@ -3,9 +3,10 @@ import { useNavigate, NavLink, Outlet, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, LogOut, FileText, ShoppingCart } from "lucide-react";
+import { LogOut, FileText, ShoppingCart } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { cn } from "@/lib/utils";
+import logoHbs from "@/assets/logo-hbs.png";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -70,11 +71,9 @@ const Dashboard = () => {
       {/* Header */}
       <header className="border-b border-border bg-card shadow-card">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <div>
+          <div className="flex items-center gap-4">
+            <img src={logoHbs} alt="HBS Logo" className="h-10 w-auto" />
+            <div className="border-l border-border pl-4">
               <h1 className="font-semibold text-foreground">Portal de Proveedores</h1>
               <p className="text-sm text-muted-foreground">{user?.email}</p>
             </div>
