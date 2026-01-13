@@ -20,27 +20,33 @@ export type Database = {
           id: string
           offer_id: string
           price_euros: number
+          status: Database["public"]["Enums"]["order_status"]
           term: string
           units: number
           user_id: string
+          verified_at: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           offer_id: string
           price_euros: number
+          status?: Database["public"]["Enums"]["order_status"]
           term: string
           units: number
           user_id: string
+          verified_at?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           offer_id?: string
           price_euros?: number
+          status?: Database["public"]["Enums"]["order_status"]
           term?: string
           units?: number
           user_id?: string
+          verified_at?: string | null
         }
         Relationships: [
           {
@@ -94,6 +100,7 @@ export type Database = {
     }
     Enums: {
       offer_status: "abierta" | "aplicada" | "aceptada" | "rechazada"
+      order_status: "pendiente" | "confirmado"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -222,6 +229,7 @@ export const Constants = {
   public: {
     Enums: {
       offer_status: ["abierta", "aplicada", "aceptada", "rechazada"],
+      order_status: ["pendiente", "confirmado"],
     },
   },
 } as const
