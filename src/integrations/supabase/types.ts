@@ -14,9 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      offer_applications: {
+        Row: {
+          created_at: string
+          id: string
+          offer_id: string
+          price_euros: number
+          term: string
+          units: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          offer_id: string
+          price_euros: number
+          term: string
+          units: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          offer_id?: string
+          price_euros?: number
+          term?: string
+          units?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_applications_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offers: {
         Row: {
           created_at: string
+          deadline: string | null
           description: string
           id: string
           minimum_units: number
@@ -26,6 +65,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deadline?: string | null
           description: string
           id?: string
           minimum_units?: number
@@ -35,6 +75,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deadline?: string | null
           description?: string
           id?: string
           minimum_units?: number

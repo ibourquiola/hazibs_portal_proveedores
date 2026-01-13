@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, NavLink, Outlet, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, LogOut, Package, FileText, CheckCircle, XCircle } from "lucide-react";
-import { OffersTable } from "@/components/OffersTable";
+import { Building2, LogOut, FileText, ShoppingCart } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
+import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -36,6 +36,13 @@ const Dashboard = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Redirect to ofertas if at /dashboard
+  useEffect(() => {
+    if (location.pathname === "/dashboard") {
+      navigate("/dashboard/ofertas", { replace: true });
+    }
+  }, [location.pathname, navigate]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast({
@@ -52,6 +59,11 @@ const Dashboard = () => {
       </div>
     );
   }
+
+  const navItems = [
+    { to: "/dashboard/ofertas", label: "Ofertas", icon: FileText },
+    { to: "/dashboard/pedidos", label: "Pedidos", icon: ShoppingCart },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -74,86 +86,36 @@ const Dashboard = () => {
         </div>
       </header>
 
+      {/* Navigation */}
+      <nav className="border-b border-border bg-card">
+        <div className="container mx-auto px-4">
+          <div className="flex gap-1">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
+                    isActive
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                  )
+                }
+              >
+                <item.icon className="w-4 h-4" />
+                {item.label}
+              </NavLink>
+            ))}
+          </div>
+        </div>
+      </nav>
+
       {/* Main content */}
       <main className="container mx-auto px-4 py-8">
-        {/* Stats cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <StatCard
-            icon={<FileText className="w-5 h-5" />}
-            label="Total Ofertas"
-            value="8"
-            color="primary"
-          />
-          <StatCard
-            icon={<Package className="w-5 h-5" />}
-            label="Abiertas"
-            value="4"
-            color="open"
-          />
-          <StatCard
-            icon={<CheckCircle className="w-5 h-5" />}
-            label="Aceptadas"
-            value="1"
-            color="accepted"
-          />
-          <StatCard
-            icon={<XCircle className="w-5 h-5" />}
-            label="Rechazadas"
-            value="1"
-            color="rejected"
-          />
-        </div>
-
-        {/* Offers section */}
-        <Card className="shadow-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-primary" />
-              Listado de Ofertas
-            </CardTitle>
-            <CardDescription>
-              Consulta y gestiona las ofertas disponibles
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <OffersTable />
-          </CardContent>
-        </Card>
+        <Outlet />
       </main>
     </div>
-  );
-};
-
-interface StatCardProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  color: "primary" | "open" | "applied" | "accepted" | "rejected";
-}
-
-const StatCard = ({ icon, label, value, color }: StatCardProps) => {
-  const colorClasses = {
-    primary: "bg-primary/10 text-primary",
-    open: "bg-status-open-bg text-status-open",
-    applied: "bg-status-applied-bg text-status-applied",
-    accepted: "bg-status-accepted-bg text-status-accepted",
-    rejected: "bg-status-rejected-bg text-status-rejected",
-  };
-
-  return (
-    <Card className="shadow-card hover:shadow-card-hover transition-shadow duration-300">
-      <CardContent className="p-6">
-        <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${colorClasses[color]}`}>
-            {icon}
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-foreground">{value}</p>
-            <p className="text-sm text-muted-foreground">{label}</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
   );
 };
 
