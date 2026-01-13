@@ -70,7 +70,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card shadow-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <img src={logoHbs} alt="HBS Logo" className="h-10 w-auto" />
             <div className="border-l border-border pl-4">
@@ -87,7 +87,7 @@ const Dashboard = () => {
 
       {/* Navigation */}
       <nav className="border-b border-border bg-card">
-        <div className="container mx-auto px-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1">
             {navItems.map((item) => (
               <NavLink
@@ -111,7 +111,7 @@ const Dashboard = () => {
       </nav>
 
       {/* Main content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <Outlet />
       </main>
     </div>
