@@ -67,9 +67,9 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card shadow-card">
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
+      {/* Header - Fixed */}
+      <header className="flex-shrink-0 border-b border-border bg-card shadow-card">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <img src={logoHbs} alt="HBS Logo" className="h-10 w-auto" />
@@ -85,8 +85,8 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Navigation */}
-      <nav className="border-b border-border bg-card">
+      {/* Navigation - Fixed */}
+      <nav className="flex-shrink-0 border-b border-border bg-card">
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1">
             {navItems.map((item) => (
@@ -110,8 +110,8 @@ const Dashboard = () => {
         </div>
       </nav>
 
-      {/* Main content */}
-      <main className="w-full px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main content - Scrollable */}
+      <main className="flex-1 overflow-auto w-full px-4 sm:px-6 lg:px-8 py-6">
         <Outlet />
       </main>
     </div>
