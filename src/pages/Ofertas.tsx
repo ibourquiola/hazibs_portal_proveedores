@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
@@ -12,13 +12,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Package, Hash, Calendar, Send, Eye } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { FileText, Package, Hash, Calendar as CalendarIcon, Send, Eye, ArrowUpDown, ArrowUp, ArrowDown, Search, Filter, X } from "lucide-react";
 import { ApplyOfferModal } from "@/components/ApplyOfferModal";
 import { ViewOfferModal } from "@/components/ViewOfferModal";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 type OfferStatus = "abierta" | "aplicada" | "aceptada" | "rechazada";
+type SortDirection = "asc" | "desc" | null;
+type SortField = "offer_number" | "minimum_units" | "deadline";
 
 interface Offer {
   id: string;
@@ -37,6 +44,16 @@ const Ofertas = () => {
   const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
 
+  // Filters
+  const [filterOfferNumber, setFilterOfferNumber] = useState("");
+  const [filterDescription, setFilterDescription] = useState("");
+  const [filterDeadline, setFilterDeadline] = useState<Date | undefined>(undefined);
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+
+  // Sorting
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
   const fetchOffers = async () => {
     const { data, error } = await supabase
       .from("offers")
@@ -54,6 +71,89 @@ const Ofertas = () => {
   useEffect(() => {
     fetchOffers();
   }, []);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else if (sortDirection === "desc") {
+        setSortField(null);
+        setSortDirection(null);
+      } else {
+        setSortDirection("asc");
+      }
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-4 h-4 ml-1 opacity-50" />;
+    }
+    if (sortDirection === "asc") {
+      return <ArrowUp className="w-4 h-4 ml-1" />;
+    }
+    return <ArrowDown className="w-4 h-4 ml-1" />;
+  };
+
+  const filteredAndSortedOffers = useMemo(() => {
+    let result = [...offers];
+
+    // Apply filters
+    if (filterOfferNumber) {
+      result = result.filter((offer) =>
+        offer.offer_number.toLowerCase().includes(filterOfferNumber.toLowerCase())
+      );
+    }
+    if (filterDescription) {
+      result = result.filter((offer) =>
+        offer.description.toLowerCase().includes(filterDescription.toLowerCase())
+      );
+    }
+    if (filterDeadline) {
+      result = result.filter((offer) => {
+        if (!offer.deadline) return false;
+        return new Date(offer.deadline) <= filterDeadline;
+      });
+    }
+    if (filterStatus && filterStatus !== "all") {
+      result = result.filter((offer) => offer.status === filterStatus);
+    }
+
+    // Apply sorting
+    if (sortField && sortDirection) {
+      result.sort((a, b) => {
+        let comparison = 0;
+        switch (sortField) {
+          case "offer_number":
+            comparison = a.offer_number.localeCompare(b.offer_number, "es", { numeric: true });
+            break;
+          case "minimum_units":
+            comparison = a.minimum_units - b.minimum_units;
+            break;
+          case "deadline":
+            const dateA = a.deadline ? new Date(a.deadline).getTime() : 0;
+            const dateB = b.deadline ? new Date(b.deadline).getTime() : 0;
+            comparison = dateA - dateB;
+            break;
+        }
+        return sortDirection === "asc" ? comparison : -comparison;
+      });
+    }
+
+    return result;
+  }, [offers, filterOfferNumber, filterDescription, filterDeadline, filterStatus, sortField, sortDirection]);
+
+  const clearFilters = () => {
+    setFilterOfferNumber("");
+    setFilterDescription("");
+    setFilterDeadline(undefined);
+    setFilterStatus("all");
+  };
+
+  const hasActiveFilters = filterOfferNumber || filterDescription || filterDeadline || (filterStatus && filterStatus !== "all");
 
   const getStatusBadge = (status: OfferStatus) => {
     const statusConfig = {
@@ -172,11 +272,88 @@ const Ofertas = () => {
           </CardTitle>
           <CardDescription>Consulta y gestiona las ofertas disponibles</CardDescription>
         </CardHeader>
-        <CardContent>
-          {offers.length === 0 ? (
+        <CardContent className="space-y-4">
+          {/* Filters */}
+          <div className="flex flex-wrap gap-3 items-end p-4 bg-muted/30 rounded-lg border">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Filter className="w-4 h-4" />
+              Filtros:
+            </div>
+            <div className="flex-1 min-w-[180px] max-w-[200px]">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Nº Oferta"
+                  value={filterOfferNumber}
+                  onChange={(e) => setFilterOfferNumber(e.target.value)}
+                  className="pl-8 h-9"
+                />
+              </div>
+            </div>
+            <div className="flex-1 min-w-[180px] max-w-[250px]">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Descripción"
+                  value={filterDescription}
+                  onChange={(e) => setFilterDescription(e.target.value)}
+                  className="pl-8 h-9"
+                />
+              </div>
+            </div>
+            <div className="min-w-[180px]">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal h-9",
+                      !filterDeadline && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {filterDeadline ? format(filterDeadline, "dd MMM yyyy", { locale: es }) : "Deadline hasta"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={filterDeadline}
+                    onSelect={setFilterDeadline}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="min-w-[150px]">
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="abierta">Abierta</SelectItem>
+                  <SelectItem value="aplicada">Aplicada</SelectItem>
+                  <SelectItem value="aceptada">Aceptada</SelectItem>
+                  <SelectItem value="rechazada">Rechazada</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 gap-1">
+                <X className="w-4 h-4" />
+                Limpiar
+              </Button>
+            )}
+          </div>
+
+          {filteredAndSortedOffers.length === 0 ? (
             <div className="text-center py-12">
               <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No hay ofertas disponibles</p>
+              <p className="text-muted-foreground">
+                {hasActiveFilters ? "No se encontraron ofertas con los filtros aplicados" : "No hay ofertas disponibles"}
+              </p>
             </div>
           ) : (
             <div className="rounded-lg border border-border overflow-hidden">
@@ -184,10 +361,17 @@ const Ofertas = () => {
                 <TableHeader>
                   <TableRow className="bg-muted/50 hover:bg-muted/50">
                     <TableHead className="font-semibold">
-                      <div className="flex items-center gap-2">
-                        <Hash className="w-4 h-4" />
-                        Nº Oferta
-                      </div>
+                      <Button
+                        variant="ghost"
+                        className="p-0 h-auto font-semibold hover:bg-transparent"
+                        onClick={() => handleSort("offer_number")}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Hash className="w-4 h-4" />
+                          Nº Oferta
+                          {getSortIcon("offer_number")}
+                        </div>
+                      </Button>
                     </TableHead>
                     <TableHead className="font-semibold">
                       <div className="flex items-center gap-2">
@@ -196,23 +380,37 @@ const Ofertas = () => {
                       </div>
                     </TableHead>
                     <TableHead className="font-semibold text-center">
-                      <div className="flex items-center gap-2 justify-center">
-                        <Package className="w-4 h-4" />
-                        Uds. Mínimas
-                      </div>
+                      <Button
+                        variant="ghost"
+                        className="p-0 h-auto font-semibold hover:bg-transparent w-full justify-center"
+                        onClick={() => handleSort("minimum_units")}
+                      >
+                        <div className="flex items-center gap-2 justify-center">
+                          <Package className="w-4 h-4" />
+                          Uds. Mínimas
+                          {getSortIcon("minimum_units")}
+                        </div>
+                      </Button>
                     </TableHead>
                     <TableHead className="font-semibold text-center">
-                      <div className="flex items-center gap-2 justify-center">
-                        <Calendar className="w-4 h-4" />
-                        Deadline
-                      </div>
+                      <Button
+                        variant="ghost"
+                        className="p-0 h-auto font-semibold hover:bg-transparent w-full justify-center"
+                        onClick={() => handleSort("deadline")}
+                      >
+                        <div className="flex items-center gap-2 justify-center">
+                          <CalendarIcon className="w-4 h-4" />
+                          Deadline
+                          {getSortIcon("deadline")}
+                        </div>
+                      </Button>
                     </TableHead>
                     <TableHead className="font-semibold text-center">Estado</TableHead>
                     <TableHead className="font-semibold text-center">Acción</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {offers.map((offer, index) => (
+                  {filteredAndSortedOffers.map((offer, index) => (
                     <TableRow
                       key={offer.id}
                       className="animate-fade-in hover:bg-accent/50 transition-colors"
