@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { FileText, Package, Hash, Calendar as CalendarIcon, Send, Eye, ArrowUpDown, ArrowUp, ArrowDown, Search, Filter, X } from "lucide-react";
+import { FileText, Package, Hash, Calendar as CalendarIcon, Send, Eye, ArrowUpDown, ArrowUp, ArrowDown, Search, Filter, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { ApplyOfferModal } from "@/components/ApplyOfferModal";
 import { ViewOfferModal } from "@/components/ViewOfferModal";
 import { format } from "date-fns";
@@ -26,6 +26,8 @@ import { cn } from "@/lib/utils";
 type OfferStatus = "abierta" | "aplicada" | "aceptada" | "rechazada";
 type SortDirection = "asc" | "desc" | null;
 type SortField = "offer_number" | "minimum_units" | "deadline";
+
+const ITEMS_PER_PAGE = 20;
 
 interface Offer {
   id: string;
@@ -54,6 +56,9 @@ const Ofertas = () => {
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+
   const fetchOffers = async () => {
     const { data, error } = await supabase
       .from("offers")
@@ -71,6 +76,11 @@ const Ofertas = () => {
   useEffect(() => {
     fetchOffers();
   }, []);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterOfferNumber, filterDescription, filterDeadline, filterStatus]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -146,6 +156,13 @@ const Ofertas = () => {
     return result;
   }, [offers, filterOfferNumber, filterDescription, filterDeadline, filterStatus, sortField, sortDirection]);
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredAndSortedOffers.length / ITEMS_PER_PAGE);
+  const paginatedOffers = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredAndSortedOffers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredAndSortedOffers, currentPage]);
+
   const clearFilters = () => {
     setFilterOfferNumber("");
     setFilterDescription("");
@@ -205,11 +222,12 @@ const Ofertas = () => {
           <Button
             size="sm"
             variant="outline"
-            className="gap-2"
+            className="gap-1 sm:gap-2 text-xs sm:text-sm"
             onClick={() => handleApplyClick(offer)}
           >
-            <Send className="w-4 h-4" />
-            Aplicar oferta
+            <Send className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Aplicar oferta</span>
+            <span className="sm:hidden">Aplicar</span>
           </Button>
         );
       case "aplicada":
@@ -217,11 +235,12 @@ const Ofertas = () => {
           <Button
             size="sm"
             variant="outline"
-            className="gap-2"
+            className="gap-1 sm:gap-2 text-xs sm:text-sm"
             onClick={() => handleViewClick(offer)}
           >
-            <Eye className="w-4 h-4" />
-            Ver oferta
+            <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Ver oferta</span>
+            <span className="sm:hidden">Ver</span>
           </Button>
         );
       case "aceptada":
@@ -236,24 +255,21 @@ const Ofertas = () => {
 
   if (loading) {
     return (
-      <Card className="shadow-card">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Card className="shadow-card w-full">
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
             <FileText className="w-5 h-5 text-primary" />
             Listado de Ofertas
           </CardTitle>
-          <CardDescription>Consulta y gestiona las ofertas disponibles</CardDescription>
+          <CardDescription className="text-sm">Consulta y gestiona las ofertas disponibles</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6">
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex gap-4">
-                <Skeleton className="h-12 w-28" />
-                <Skeleton className="h-12 flex-1" />
-                <Skeleton className="h-12 w-24" />
-                <Skeleton className="h-12 w-24" />
-                <Skeleton className="h-12 w-24" />
-                <Skeleton className="h-12 w-32" />
+              <div key={i} className="flex gap-2 sm:gap-4">
+                <Skeleton className="h-10 sm:h-12 w-20 sm:w-28" />
+                <Skeleton className="h-10 sm:h-12 flex-1" />
+                <Skeleton className="h-10 sm:h-12 w-16 sm:w-24" />
               </div>
             ))}
           </div>
@@ -264,44 +280,40 @@ const Ofertas = () => {
 
   return (
     <>
-      <Card className="shadow-card">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Card className="shadow-card w-full">
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
             <FileText className="w-5 h-5 text-primary" />
             Listado de Ofertas
           </CardTitle>
-          <CardDescription>Consulta y gestiona las ofertas disponibles</CardDescription>
+          <CardDescription className="text-sm">Consulta y gestiona las ofertas disponibles</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 px-4 sm:px-6">
           {/* Filters */}
-          <div className="flex flex-wrap gap-3 items-center p-4 bg-muted/30 rounded-lg border">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 p-3 sm:p-4 bg-muted/30 rounded-lg border">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground sm:col-span-2 lg:col-span-5">
               <Filter className="w-4 h-4" />
               Filtros:
             </div>
-            <div className="flex-1 min-w-[180px] max-w-[200px]">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Nº Oferta"
-                  value={filterOfferNumber}
-                  onChange={(e) => setFilterOfferNumber(e.target.value)}
-                  className="pl-8 h-9"
-                />
-              </div>
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Nº Oferta"
+                value={filterOfferNumber}
+                onChange={(e) => setFilterOfferNumber(e.target.value)}
+                className="pl-8 h-9"
+              />
             </div>
-            <div className="flex-1 min-w-[180px] max-w-[250px]">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Descripción"
-                  value={filterDescription}
-                  onChange={(e) => setFilterDescription(e.target.value)}
-                  className="pl-8 h-9"
-                />
-              </div>
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Descripción"
+                value={filterDescription}
+                onChange={(e) => setFilterDescription(e.target.value)}
+                className="pl-8 h-9"
+              />
             </div>
-            <div className="min-w-[180px]">
+            <div>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -326,7 +338,7 @@ const Ofertas = () => {
                 </PopoverContent>
               </Popover>
             </div>
-            <div className="min-w-[150px]">
+            <div>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder="Estado" />
@@ -356,91 +368,151 @@ const Ofertas = () => {
               </p>
             </div>
           ) : (
-            <div className="rounded-lg border border-border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50 hover:bg-muted/50">
-                    <TableHead className="font-semibold">
-                      <Button
-                        variant="ghost"
-                        className="p-0 h-auto font-semibold hover:bg-transparent"
-                        onClick={() => handleSort("offer_number")}
-                      >
-                        <div className="flex items-center gap-2">
-                          <Hash className="w-4 h-4" />
-                          Nº Oferta
-                          {getSortIcon("offer_number")}
+            <>
+              <div className="rounded-lg border border-border overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50 hover:bg-muted/50">
+                      <TableHead className="font-semibold whitespace-nowrap">
+                        <Button
+                          variant="ghost"
+                          className="p-0 h-auto font-semibold hover:bg-transparent"
+                          onClick={() => handleSort("offer_number")}
+                        >
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <Hash className="w-4 h-4 hidden sm:block" />
+                            <span className="text-xs sm:text-sm">Nº Oferta</span>
+                            {getSortIcon("offer_number")}
+                          </div>
+                        </Button>
+                      </TableHead>
+                      <TableHead className="font-semibold">
+                        <div className="flex items-center gap-1 sm:gap-2">
+                          <FileText className="w-4 h-4 hidden sm:block" />
+                          <span className="text-xs sm:text-sm">Descripción</span>
                         </div>
-                      </Button>
-                    </TableHead>
-                    <TableHead className="font-semibold">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4" />
-                        Descripción
-                      </div>
-                    </TableHead>
-                    <TableHead className="font-semibold text-center">
-                      <Button
-                        variant="ghost"
-                        className="p-0 h-auto font-semibold hover:bg-transparent w-full justify-center"
-                        onClick={() => handleSort("minimum_units")}
-                      >
-                        <div className="flex items-center gap-2 justify-center">
-                          <Package className="w-4 h-4" />
-                          Uds. Mínimas
-                          {getSortIcon("minimum_units")}
-                        </div>
-                      </Button>
-                    </TableHead>
-                    <TableHead className="font-semibold text-center">
-                      <Button
-                        variant="ghost"
-                        className="p-0 h-auto font-semibold hover:bg-transparent w-full justify-center"
-                        onClick={() => handleSort("deadline")}
-                      >
-                        <div className="flex items-center gap-2 justify-center">
-                          <CalendarIcon className="w-4 h-4" />
-                          Deadline
-                          {getSortIcon("deadline")}
-                        </div>
-                      </Button>
-                    </TableHead>
-                    <TableHead className="font-semibold text-center">Estado</TableHead>
-                    <TableHead className="font-semibold text-center">Acción</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredAndSortedOffers.map((offer, index) => (
-                    <TableRow
-                      key={offer.id}
-                      className="animate-fade-in hover:bg-accent/50 transition-colors"
-                      style={{ animationDelay: `${index * 50}ms` }}
-                    >
-                      <TableCell className="font-mono font-medium text-primary">
-                        {offer.offer_number}
-                      </TableCell>
-                      <TableCell className="max-w-md">
-                        <p className="truncate">{offer.description}</p>
-                      </TableCell>
-                      <TableCell className="text-center font-medium">
-                        {offer.minimum_units.toLocaleString("es-ES")}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {offer.deadline
-                          ? format(new Date(offer.deadline), "dd MMM yyyy", { locale: es })
-                          : "-"}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {getStatusBadge(offer.status)}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {renderActionButton(offer)}
-                      </TableCell>
+                      </TableHead>
+                      <TableHead className="font-semibold text-center whitespace-nowrap hidden md:table-cell">
+                        <Button
+                          variant="ghost"
+                          className="p-0 h-auto font-semibold hover:bg-transparent w-full justify-center"
+                          onClick={() => handleSort("minimum_units")}
+                        >
+                          <div className="flex items-center gap-1 sm:gap-2 justify-center">
+                            <Package className="w-4 h-4 hidden sm:block" />
+                            <span className="text-xs sm:text-sm">Uds. Mín.</span>
+                            {getSortIcon("minimum_units")}
+                          </div>
+                        </Button>
+                      </TableHead>
+                      <TableHead className="font-semibold text-center whitespace-nowrap hidden lg:table-cell">
+                        <Button
+                          variant="ghost"
+                          className="p-0 h-auto font-semibold hover:bg-transparent w-full justify-center"
+                          onClick={() => handleSort("deadline")}
+                        >
+                          <div className="flex items-center gap-1 sm:gap-2 justify-center">
+                            <CalendarIcon className="w-4 h-4 hidden sm:block" />
+                            <span className="text-xs sm:text-sm">Deadline</span>
+                            {getSortIcon("deadline")}
+                          </div>
+                        </Button>
+                      </TableHead>
+                      <TableHead className="font-semibold text-center whitespace-nowrap">
+                        <span className="text-xs sm:text-sm">Estado</span>
+                      </TableHead>
+                      <TableHead className="font-semibold text-center whitespace-nowrap">
+                        <span className="text-xs sm:text-sm">Acción</span>
+                      </TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedOffers.map((offer, index) => (
+                      <TableRow
+                        key={offer.id}
+                        className="animate-fade-in hover:bg-accent/50 transition-colors"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <TableCell className="font-mono font-medium text-primary text-xs sm:text-sm whitespace-nowrap">
+                          {offer.offer_number}
+                        </TableCell>
+                        <TableCell className="max-w-[120px] sm:max-w-md">
+                          <p className="truncate text-xs sm:text-sm">{offer.description}</p>
+                        </TableCell>
+                        <TableCell className="text-center font-medium text-xs sm:text-sm hidden md:table-cell">
+                          {offer.minimum_units.toLocaleString("es-ES")}
+                        </TableCell>
+                        <TableCell className="text-center text-xs sm:text-sm hidden lg:table-cell whitespace-nowrap">
+                          {offer.deadline
+                            ? format(new Date(offer.deadline), "dd MMM yyyy", { locale: es })
+                            : "-"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {getStatusBadge(offer.status)}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {renderActionButton(offer)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4">
+                  <p className="text-sm text-muted-foreground order-2 sm:order-1">
+                    Mostrando {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedOffers.length)} de {filteredAndSortedOffers.length} ofertas
+                  </p>
+                  <div className="flex items-center gap-2 order-1 sm:order-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      <span className="hidden sm:inline ml-1">Anterior</span>
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum: number;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? "default" : "outline"}
+                            size="sm"
+                            className="w-8 h-8 p-0"
+                            onClick={() => setCurrentPage(pageNum)}
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      <span className="hidden sm:inline mr-1">Siguiente</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
