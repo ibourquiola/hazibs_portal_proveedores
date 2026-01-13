@@ -18,7 +18,8 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          offer_id: string
+          offer_id: string | null
+          order_number: string
           price_euros: number
           status: Database["public"]["Enums"]["order_status"]
           term: string
@@ -29,7 +30,8 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          offer_id: string
+          offer_id?: string | null
+          order_number: string
           price_euros: number
           status?: Database["public"]["Enums"]["order_status"]
           term: string
@@ -40,7 +42,8 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
-          offer_id?: string
+          offer_id?: string | null
+          order_number?: string
           price_euros?: number
           status?: Database["public"]["Enums"]["order_status"]
           term?: string
