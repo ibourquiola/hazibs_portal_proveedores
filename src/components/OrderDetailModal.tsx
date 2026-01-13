@@ -161,6 +161,7 @@ export const OrderDetailModal = ({
     try {
       // If changes were made to a confirmed order, reset to pending
       const newStatus = hasChanges ? "pendiente" : order.status;
+      const newVerifiedAt = hasChanges ? null : order.verified_at;
 
       const { error } = await supabase
         .from("offer_applications")
@@ -169,13 +170,24 @@ export const OrderDetailModal = ({
           term: term.trim(),
           price_euros: parseFloat(priceEuros),
           status: newStatus,
-          verified_at: hasChanges ? null : order.verified_at,
+          verified_at: newVerifiedAt,
         })
         .eq("id", order.id);
 
       if (error) {
         throw error;
       }
+
+      // Update local order state to reflect changes
+      const updatedOrder: OrderWithOffer = {
+        ...order,
+        units: parseInt(units, 10),
+        term: term.trim(),
+        price_euros: parseFloat(priceEuros),
+        status: newStatus as OrderStatus,
+        verified_at: newVerifiedAt,
+      };
+      setOrder(updatedOrder);
 
       toast({
         title: hasChanges ? "Pedido modificado" : "Cambios guardados",
@@ -206,6 +218,7 @@ export const OrderDetailModal = ({
   };
 
   const handleCancelEdit = () => {
+    // Reset to current order values (not initialOrder, in case order was updated)
     setUnits(order.units.toString());
     setTerm(order.term);
     setPriceEuros(order.price_euros.toString());
