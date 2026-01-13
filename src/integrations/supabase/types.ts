@@ -31,7 +31,7 @@ export type Database = {
           created_at?: string
           id?: string
           offer_id?: string | null
-          order_number: string
+          order_number?: string
           price_euros: number
           status?: Database["public"]["Enums"]["order_status"]
           term: string
