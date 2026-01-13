@@ -114,6 +114,28 @@ export const ApplyOfferModal = ({
         console.error("Error updating offer status:", updateError);
       }
 
+      // Send email notification
+      try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        await fetch(`${supabaseUrl}/functions/v1/send-order-notification`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userEmail: user.email,
+            offerNumber: offer.offer_number,
+            offerDescription: offer.description,
+            units: parseInt(units, 10),
+            term: term.trim(),
+            priceEuros: parseFloat(priceEuros),
+          }),
+        });
+      } catch (emailError) {
+        console.error("Error sending email notification:", emailError);
+        // Don't fail the whole operation if email fails
+      }
+
       toast({
         title: "Aplicación enviada",
         description: `Has aplicado correctamente a la oferta ${offer.offer_number}.`,
