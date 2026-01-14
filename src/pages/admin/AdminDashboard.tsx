@@ -3,7 +3,7 @@ import { useNavigate, NavLink, Outlet, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Users, FileText, ShoppingCart } from "lucide-react";
+import { LogOut, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logoHbs from "@/assets/logo-hbs.png";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -59,8 +59,6 @@ const AdminDashboard = () => {
 
   const navItems = [
     { to: "/admin/proveedores", label: "Proveedores", icon: Users },
-    { to: "/admin/ofertas", label: "Ofertas", icon: FileText },
-    { to: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
   ];
 
   return (
