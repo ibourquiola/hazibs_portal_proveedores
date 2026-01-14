@@ -21,7 +21,7 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
     });
@@ -32,6 +32,20 @@ const Login = () => {
         title: "Error al iniciar sesión",
         description: error.message,
       });
+      setIsLoading(false);
+      return;
+    }
+
+    // Check user role and redirect accordingly
+    const { data: roleData } = await supabase
+      .rpc('get_user_role', { _user_id: authData.user.id });
+
+    if (roleData === 'admin') {
+      toast({
+        title: "¡Bienvenido!",
+        description: "Has iniciado sesión como administrador.",
+      });
+      navigate("/admin");
     } else {
       toast({
         title: "¡Bienvenido!",
