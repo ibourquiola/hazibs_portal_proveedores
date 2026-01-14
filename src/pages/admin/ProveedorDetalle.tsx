@@ -60,6 +60,21 @@ interface OfferApplication {
   } | null;
 }
 
+interface OrderConfirmation {
+  id: string;
+  offer_application_id: string;
+  units: number;
+  term: string;
+  price_euros: number;
+  confirmed_at: string;
+  offer_application: {
+    order_number: string;
+    offer: {
+      offer_number: string;
+    } | null;
+  } | null;
+}
+
 const ProveedorDetalle = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -68,6 +83,7 @@ const ProveedorDetalle = () => {
   const [supplier, setSupplier] = useState<Supplier | null>(null);
   const [users, setUsers] = useState<SupplierUser[]>([]);
   const [applications, setApplications] = useState<OfferApplication[]>([]);
+  const [confirmations, setConfirmations] = useState<OrderConfirmation[]>([]);
   const [loading, setLoading] = useState(true);
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -144,10 +160,39 @@ const ProveedorDetalle = () => {
     }
   };
 
+  const fetchConfirmations = async () => {
+    if (!id) return;
+
+    const { data, error } = await supabase
+      .from("order_confirmations")
+      .select(`
+        id,
+        offer_application_id,
+        units,
+        term,
+        price_euros,
+        confirmed_at,
+        offer_application:offer_applications (
+          order_number,
+          offer:offers (
+            offer_number
+          )
+        )
+      `)
+      .eq("supplier_id", id)
+      .order("confirmed_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching confirmations:", error);
+    } else {
+      setConfirmations(data || []);
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([fetchSupplier(), fetchUsers(), fetchApplications()]);
+      await Promise.all([fetchSupplier(), fetchUsers(), fetchApplications(), fetchConfirmations()]);
       setLoading(false);
     };
     loadData();
@@ -279,7 +324,7 @@ const ProveedorDetalle = () => {
     return null;
   }
 
-  const confirmedOrders = applications.filter((a) => a.status === "confirmado");
+  
 
   return (
     <div className="space-y-6">
@@ -321,11 +366,11 @@ const ProveedorDetalle = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Pedidos Confirmados
+              Confirmaciones
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{confirmedOrders.length}</div>
+            <div className="text-2xl font-bold">{confirmations.length}</div>
           </CardContent>
         </Card>
       </div>
@@ -529,11 +574,11 @@ const ProveedorDetalle = () => {
 
         {/* Orders Tab */}
         <TabsContent value="orders" className="space-y-4">
-          {confirmedOrders.length === 0 ? (
+          {confirmations.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <ShoppingCart className="w-12 h-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No hay pedidos confirmados</p>
+                <p className="text-muted-foreground">No hay confirmaciones de pedidos</p>
               </CardContent>
             </Card>
           ) : (
@@ -546,24 +591,26 @@ const ProveedorDetalle = () => {
                     <TableHead className="text-right">Unidades</TableHead>
                     <TableHead>Plazo</TableHead>
                     <TableHead className="text-right">Precio</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Fecha</TableHead>
+                    <TableHead>Fecha Confirmación</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {confirmedOrders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-medium">{order.order_number}</TableCell>
-                      <TableCell>{order.offer?.offer_number || "-"}</TableCell>
-                      <TableCell className="text-right">
-                        {order.units.toLocaleString("es-ES")}
+                  {confirmations.map((confirmation) => (
+                    <TableRow key={confirmation.id}>
+                      <TableCell className="font-medium">
+                        {confirmation.offer_application?.order_number || "-"}
                       </TableCell>
-                      <TableCell>{order.term}</TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(order.price_euros)}
+                      <TableCell>
+                        {confirmation.offer_application?.offer?.offer_number || "-"}
                       </TableCell>
-                      <TableCell>{getStatusBadge(order.status)}</TableCell>
-                      <TableCell>{formatDate(order.created_at)}</TableCell>
+                      <TableCell className="text-right">
+                        {confirmation.units.toLocaleString("es-ES")}
+                      </TableCell>
+                      <TableCell>{confirmation.term}</TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(confirmation.price_euros)}
+                      </TableCell>
+                      <TableCell>{formatDate(confirmation.confirmed_at)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

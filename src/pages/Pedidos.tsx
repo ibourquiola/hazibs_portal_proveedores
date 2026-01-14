@@ -29,6 +29,7 @@ interface OrderWithOffer {
   id: string;
   order_number: string;
   offer_id: string | null;
+  supplier_id: string | null;
   units: number;
   term: string;
   price_euros: number;
@@ -69,6 +70,7 @@ const Pedidos = () => {
         id,
         order_number,
         offer_id,
+        supplier_id,
         units,
         term,
         price_euros,

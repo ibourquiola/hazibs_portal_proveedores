@@ -104,6 +104,50 @@ export type Database = {
         }
         Relationships: []
       }
+      order_confirmations: {
+        Row: {
+          confirmed_at: string
+          created_at: string
+          id: string
+          offer_application_id: string
+          offer_id: string | null
+          price_euros: number
+          supplier_id: string
+          term: string
+          units: number
+        }
+        Insert: {
+          confirmed_at?: string
+          created_at?: string
+          id?: string
+          offer_application_id: string
+          offer_id?: string | null
+          price_euros: number
+          supplier_id: string
+          term: string
+          units: number
+        }
+        Update: {
+          confirmed_at?: string
+          created_at?: string
+          id?: string
+          offer_application_id?: string
+          offer_id?: string | null
+          price_euros?: number
+          supplier_id?: string
+          term?: string
+          units?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_confirmations_offer_application_id_fkey"
+            columns: ["offer_application_id"]
+            isOneToOne: false
+            referencedRelation: "offer_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supplier_users: {
         Row: {
           created_at: string

@@ -23,6 +23,7 @@ interface OrderWithOffer {
   id: string;
   order_number: string;
   offer_id: string | null;
+  supplier_id: string | null;
   units: number;
   term: string;
   price_euros: number;
@@ -115,19 +116,43 @@ export const OrderDetailModal = ({
     setSaving(true);
 
     try {
+      const unitsValue = parseInt(units, 10);
+      const priceValue = parseFloat(priceEuros);
+      const termValue = term.trim();
+      const verifiedAt = new Date().toISOString();
+
+      // Update the offer_application status
       const { error } = await supabase
         .from("offer_applications")
         .update({
-          units: parseInt(units, 10),
-          term: term.trim(),
-          price_euros: parseFloat(priceEuros),
+          units: unitsValue,
+          term: termValue,
+          price_euros: priceValue,
           status: "confirmado",
-          verified_at: new Date().toISOString(),
+          verified_at: verifiedAt,
         })
         .eq("id", order.id);
 
       if (error) {
         throw error;
+      }
+
+      // Create a record in order_confirmations
+      const { error: confirmationError } = await supabase
+        .from("order_confirmations")
+        .insert({
+          offer_application_id: order.id,
+          supplier_id: order.supplier_id,
+          offer_id: order.offer_id,
+          units: unitsValue,
+          term: termValue,
+          price_euros: priceValue,
+          confirmed_at: verifiedAt,
+        });
+
+      if (confirmationError) {
+        console.error("Error creating confirmation record:", confirmationError);
+        // Don't fail the whole operation, just log the error
       }
 
       toast({
