@@ -494,20 +494,19 @@ const ProveedorDetalle = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nº Pedido</TableHead>
                     <TableHead>Oferta</TableHead>
                     <TableHead>Descripción</TableHead>
                     <TableHead className="text-right">Unidades</TableHead>
                     <TableHead>Plazo</TableHead>
                     <TableHead className="text-right">Precio</TableHead>
+                    <TableHead>Estado</TableHead>
                     <TableHead>Fecha</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {applications.map((app) => (
                     <TableRow key={app.id}>
-                      <TableCell className="font-medium">{app.order_number}</TableCell>
-                      <TableCell>{app.offer?.offer_number || "-"}</TableCell>
+                      <TableCell className="font-medium">{app.offer?.offer_number || "-"}</TableCell>
                       <TableCell className="max-w-[200px] truncate">
                         {app.offer?.description || "-"}
                       </TableCell>
@@ -518,6 +517,7 @@ const ProveedorDetalle = () => {
                       <TableCell className="text-right">
                         {formatCurrency(app.price_euros)}
                       </TableCell>
+                      <TableCell>{getStatusBadge(app.status)}</TableCell>
                       <TableCell>{formatDate(app.created_at)}</TableCell>
                     </TableRow>
                   ))}
