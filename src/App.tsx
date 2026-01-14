@@ -6,9 +6,15 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ResetPassword from "./pages/ResetPassword";
+import SetupPassword from "./pages/SetupPassword";
 import NotFound from "./pages/NotFound";
 import Ofertas from "./pages/Ofertas";
 import Pedidos from "./pages/Pedidos";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import Proveedores from "./pages/admin/Proveedores";
+import ProveedorDetalle from "./pages/admin/ProveedorDetalle";
+import AdminOfertas from "./pages/admin/AdminOfertas";
+import AdminPedidos from "./pages/admin/AdminPedidos";
 
 const queryClient = new QueryClient();
 
@@ -22,11 +28,22 @@ const App = () => (
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/setup-password" element={<SetupPassword />} />
+          
+          {/* Supplier Dashboard */}
           <Route path="/dashboard" element={<Dashboard />}>
             <Route path="ofertas" element={<Ofertas />} />
             <Route path="pedidos" element={<Pedidos />} />
           </Route>
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          
+          {/* Admin Dashboard */}
+          <Route path="/admin" element={<AdminDashboard />}>
+            <Route path="proveedores" element={<Proveedores />} />
+            <Route path="proveedores/:id" element={<ProveedorDetalle />} />
+            <Route path="ofertas" element={<AdminOfertas />} />
+            <Route path="pedidos" element={<AdminPedidos />} />
+          </Route>
+          
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -22,6 +22,7 @@ export type Database = {
           order_number: string
           price_euros: number
           status: Database["public"]["Enums"]["order_status"]
+          supplier_id: string | null
           term: string
           units: number
           user_id: string
@@ -34,6 +35,7 @@ export type Database = {
           order_number?: string
           price_euros: number
           status?: Database["public"]["Enums"]["order_status"]
+          supplier_id?: string | null
           term: string
           units: number
           user_id: string
@@ -46,6 +48,7 @@ export type Database = {
           order_number?: string
           price_euros?: number
           status?: Database["public"]["Enums"]["order_status"]
+          supplier_id?: string | null
           term?: string
           units?: number
           user_id?: string
@@ -57,6 +60,13 @@ export type Database = {
             columns: ["offer_id"]
             isOneToOne: false
             referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_applications_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
@@ -94,14 +104,127 @@ export type Database = {
         }
         Relationships: []
       }
+      supplier_users: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          invitation_accepted_at: string | null
+          invitation_sent_at: string | null
+          invitation_token: string | null
+          last_name: string
+          position: string | null
+          supplier_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          invitation_accepted_at?: string | null
+          invitation_sent_at?: string | null
+          invitation_token?: string | null
+          last_name: string
+          position?: string | null
+          supplier_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          invitation_accepted_at?: string | null
+          invitation_sent_at?: string | null
+          invitation_token?: string | null
+          last_name?: string
+          position?: string | null
+          supplier_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_users_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers: {
+        Row: {
+          average_billing: number | null
+          created_at: string
+          family: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          average_billing?: number | null
+          created_at?: string
+          family: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          average_billing?: number | null
+          created_at?: string
+          family?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      get_user_supplier_id: { Args: { _user_id: string }; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "supplier"
       offer_status: "abierta" | "aplicada" | "aceptada" | "rechazada"
       order_status: "pendiente" | "confirmado"
     }
@@ -231,6 +354,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "supplier"],
       offer_status: ["abierta", "aplicada", "aceptada", "rechazada"],
       order_status: ["pendiente", "confirmado"],
     },

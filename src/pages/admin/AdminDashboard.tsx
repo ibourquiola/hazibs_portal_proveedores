@@ -3,12 +3,12 @@ import { useNavigate, NavLink, Outlet, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, FileText, ShoppingCart } from "lucide-react";
+import { LogOut, Users, FileText, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logoHbs from "@/assets/logo-hbs.png";
 import { useUserRole } from "@/hooks/useUserRole";
 
-const Dashboard = () => {
+const AdminDashboard = () => {
   const { user, role, loading } = useUserRole();
   const navigate = useNavigate();
   const location = useLocation();
@@ -18,16 +18,21 @@ const Dashboard = () => {
     if (!loading) {
       if (!user) {
         navigate("/login");
-      } else if (role === "admin") {
-        navigate("/admin");
+      } else if (role !== "admin") {
+        navigate("/login");
+        toast({
+          variant: "destructive",
+          title: "Acceso denegado",
+          description: "No tienes permisos de administrador.",
+        });
       }
     }
-  }, [user, role, loading, navigate]);
+  }, [user, role, loading, navigate, toast]);
 
-  // Redirect to ofertas if at /dashboard
+  // Redirect to proveedores if at /admin
   useEffect(() => {
-    if (location.pathname === "/dashboard") {
-      navigate("/dashboard/ofertas", { replace: true });
+    if (location.pathname === "/admin") {
+      navigate("/admin/proveedores", { replace: true });
     }
   }, [location.pathname, navigate]);
 
@@ -48,9 +53,14 @@ const Dashboard = () => {
     );
   }
 
+  if (!user || role !== "admin") {
+    return null;
+  }
+
   const navItems = [
-    { to: "/dashboard/ofertas", label: "Ofertas", icon: FileText },
-    { to: "/dashboard/pedidos", label: "Pedidos", icon: ShoppingCart },
+    { to: "/admin/proveedores", label: "Proveedores", icon: Users },
+    { to: "/admin/ofertas", label: "Ofertas", icon: FileText },
+    { to: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
   ];
 
   return (
@@ -61,7 +71,7 @@ const Dashboard = () => {
           <div className="flex items-center gap-4">
             <img src={logoHbs} alt="HBS Logo" className="h-10 w-auto" />
             <div className="border-l border-border pl-4">
-              <h1 className="font-semibold text-foreground">Portal de Proveedores</h1>
+              <h1 className="font-semibold text-foreground">Panel de Administración</h1>
               <p className="text-sm text-muted-foreground">{user?.email}</p>
             </div>
           </div>
@@ -105,4 +115,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default AdminDashboard;
