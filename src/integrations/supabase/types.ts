@@ -71,6 +71,56 @@ export type Database = {
           },
         ]
       }
+      offer_lines: {
+        Row: {
+          confirmed_price: number | null
+          confirmed_units: number | null
+          created_at: string
+          deadline: string | null
+          id: string
+          material_code: string
+          material_description: string
+          offer_id: string
+          reference_price: number | null
+          requested_units: number
+          updated_at: string
+        }
+        Insert: {
+          confirmed_price?: number | null
+          confirmed_units?: number | null
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          material_code: string
+          material_description: string
+          offer_id: string
+          reference_price?: number | null
+          requested_units: number
+          updated_at?: string
+        }
+        Update: {
+          confirmed_price?: number | null
+          confirmed_units?: number | null
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          material_code?: string
+          material_description?: string
+          offer_id?: string
+          reference_price?: number | null
+          requested_units?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_lines_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offers: {
         Row: {
           created_at: string
@@ -141,6 +191,95 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "order_confirmations_offer_application_id_fkey"
+            columns: ["offer_application_id"]
+            isOneToOne: false
+            referencedRelation: "offer_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_line_confirmations: {
+        Row: {
+          article_code: string
+          confirmed_price: number
+          confirmed_term: string
+          confirmed_units: number
+          created_at: string
+          id: string
+          offer_application_id: string
+          order_line_id: string
+        }
+        Insert: {
+          article_code: string
+          confirmed_price: number
+          confirmed_term: string
+          confirmed_units: number
+          created_at?: string
+          id?: string
+          offer_application_id: string
+          order_line_id: string
+        }
+        Update: {
+          article_code?: string
+          confirmed_price?: number
+          confirmed_term?: string
+          confirmed_units?: number
+          created_at?: string
+          id?: string
+          offer_application_id?: string
+          order_line_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_line_confirmations_offer_application_id_fkey"
+            columns: ["offer_application_id"]
+            isOneToOne: false
+            referencedRelation: "offer_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_line_confirmations_order_line_id_fkey"
+            columns: ["order_line_id"]
+            isOneToOne: false
+            referencedRelation: "order_lines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_lines: {
+        Row: {
+          article_code: string
+          created_at: string
+          description: string
+          id: string
+          offer_application_id: string
+          requested_price: number | null
+          requested_term: string | null
+          requested_units: number
+        }
+        Insert: {
+          article_code: string
+          created_at?: string
+          description: string
+          id?: string
+          offer_application_id: string
+          requested_price?: number | null
+          requested_term?: string | null
+          requested_units: number
+        }
+        Update: {
+          article_code?: string
+          created_at?: string
+          description?: string
+          id?: string
+          offer_application_id?: string
+          requested_price?: number | null
+          requested_term?: string | null
+          requested_units?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_lines_offer_application_id_fkey"
             columns: ["offer_application_id"]
             isOneToOne: false
             referencedRelation: "offer_applications"
