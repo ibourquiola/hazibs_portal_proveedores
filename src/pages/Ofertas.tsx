@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
@@ -16,9 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { FileText, Package, Hash, Calendar as CalendarIcon, Send, Eye, ArrowUpDown, ArrowUp, ArrowDown, Search, Filter, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { ApplyOfferModal } from "@/components/ApplyOfferModal";
-import { ViewOfferModal } from "@/components/ViewOfferModal";
+import { FileText, Package, Hash, Calendar as CalendarIcon, Eye, ArrowUpDown, ArrowUp, ArrowDown, Search, Filter, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -40,11 +39,9 @@ interface Offer {
 }
 
 const Ofertas = () => {
+  const navigate = useNavigate();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
-  const [applyModalOpen, setApplyModalOpen] = useState(false);
-  const [viewModalOpen, setViewModalOpen] = useState(false);
 
   // Filters
   const [filterOfferNumber, setFilterOfferNumber] = useState("");
@@ -176,19 +173,19 @@ const Ofertas = () => {
     const statusConfig = {
       abierta: {
         label: "Abierta",
-        className: "bg-status-open-bg text-status-open border-status-open/20",
+        className: "bg-muted text-muted-foreground border-border",
       },
       aplicada: {
         label: "Aplicada",
-        className: "bg-status-applied-bg text-status-applied border-status-applied/20",
+        className: "bg-blue-100 text-blue-800 border-blue-200",
       },
       aceptada: {
         label: "Aceptada",
-        className: "bg-status-accepted-bg text-status-accepted border-status-accepted/20",
+        className: "bg-green-100 text-green-800 border-green-200",
       },
       rechazada: {
         label: "Rechazada",
-        className: "bg-status-rejected-bg text-status-rejected border-status-rejected/20",
+        className: "bg-red-100 text-red-800 border-red-200",
       },
     };
 
@@ -201,56 +198,8 @@ const Ofertas = () => {
     );
   };
 
-  const handleApplyClick = (offer: Offer) => {
-    setSelectedOffer(offer);
-    setApplyModalOpen(true);
-  };
-
   const handleViewClick = (offer: Offer) => {
-    setSelectedOffer(offer);
-    setViewModalOpen(true);
-  };
-
-  const handleSuccess = () => {
-    fetchOffers();
-  };
-
-  const renderActionButton = (offer: Offer) => {
-    switch (offer.status) {
-      case "abierta":
-        return (
-          <Button
-            size="sm"
-            variant="outline"
-            className="gap-1 sm:gap-2 text-xs sm:text-sm"
-            onClick={() => handleApplyClick(offer)}
-          >
-            <Send className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Aplicar oferta</span>
-            <span className="sm:hidden">Aplicar</span>
-          </Button>
-        );
-      case "aplicada":
-        return (
-          <Button
-            size="sm"
-            variant="outline"
-            className="gap-1 sm:gap-2 text-xs sm:text-sm"
-            onClick={() => handleViewClick(offer)}
-          >
-            <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Ver oferta</span>
-            <span className="sm:hidden">Ver</span>
-          </Button>
-        );
-      case "aceptada":
-      case "rechazada":
-        return (
-          <span className="text-sm text-muted-foreground">—</span>
-        );
-      default:
-        return null;
-    }
+    navigate(`/dashboard/ofertas/${offer.id}`);
   };
 
   if (loading) {
@@ -279,261 +228,255 @@ const Ofertas = () => {
   }
 
   return (
-    <>
-      <Card className="shadow-card w-full">
-        <CardHeader className="px-4 sm:px-6">
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-            <FileText className="w-5 h-5 text-primary" />
-            Listado de Ofertas
-          </CardTitle>
-          <CardDescription className="text-sm">Consulta y gestiona las ofertas disponibles</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4 px-4 sm:px-6">
-          {/* Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 p-3 sm:p-4 bg-muted/30 rounded-lg border">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground sm:col-span-2 lg:col-span-5">
-              <Filter className="w-4 h-4" />
-              Filtros:
+    <Card className="shadow-card w-full">
+      <CardHeader className="px-4 sm:px-6">
+        <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+          <FileText className="w-5 h-5 text-primary" />
+          Listado de Ofertas
+        </CardTitle>
+        <CardDescription className="text-sm">Consulta y gestiona las ofertas disponibles</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4 px-4 sm:px-6">
+        {/* Filters */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 p-3 sm:p-4 bg-muted/30 rounded-lg border">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground sm:col-span-2 lg:col-span-5">
+            <Filter className="w-4 h-4" />
+            Filtros:
+          </div>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Nº Oferta"
+              value={filterOfferNumber}
+              onChange={(e) => setFilterOfferNumber(e.target.value)}
+              className="pl-8 h-9"
+            />
+          </div>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Descripción"
+              value={filterDescription}
+              onChange={(e) => setFilterDescription(e.target.value)}
+              className="pl-8 h-9"
+            />
+          </div>
+          <div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal h-9",
+                    !filterDeadline && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {filterDeadline ? format(filterDeadline, "dd MMM yyyy", { locale: es }) : "Deadline hasta"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={filterDeadline}
+                  onSelect={setFilterDeadline}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="abierta">Abierta</SelectItem>
+                <SelectItem value="aplicada">Aplicada</SelectItem>
+                <SelectItem value="aceptada">Aceptada</SelectItem>
+                <SelectItem value="rechazada">Rechazada</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {hasActiveFilters && (
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 gap-1">
+              <X className="w-4 h-4" />
+              Limpiar
+            </Button>
+          )}
+        </div>
+
+        {filteredAndSortedOffers.length === 0 ? (
+          <div className="text-center py-12">
+            <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">
+              {hasActiveFilters ? "No se encontraron ofertas con los filtros aplicados" : "No hay ofertas disponibles"}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="rounded-lg border border-border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50 hover:bg-muted/50">
+                    <TableHead className="font-semibold whitespace-nowrap">
+                      <Button
+                        variant="ghost"
+                        className="p-0 h-auto font-semibold hover:bg-transparent"
+                        onClick={() => handleSort("offer_number")}
+                      >
+                        <div className="flex items-center gap-1 sm:gap-2">
+                          <Hash className="w-4 h-4 hidden sm:block" />
+                          <span className="text-xs sm:text-sm">Nº Oferta</span>
+                          {getSortIcon("offer_number")}
+                        </div>
+                      </Button>
+                    </TableHead>
+                    <TableHead className="font-semibold">
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <FileText className="w-4 h-4 hidden sm:block" />
+                        <span className="text-xs sm:text-sm">Descripción</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="font-semibold text-center whitespace-nowrap hidden md:table-cell">
+                      <Button
+                        variant="ghost"
+                        className="p-0 h-auto font-semibold hover:bg-transparent w-full justify-center"
+                        onClick={() => handleSort("minimum_units")}
+                      >
+                        <div className="flex items-center gap-1 sm:gap-2 justify-center">
+                          <Package className="w-4 h-4 hidden sm:block" />
+                          <span className="text-xs sm:text-sm">Uds. Mín.</span>
+                          {getSortIcon("minimum_units")}
+                        </div>
+                      </Button>
+                    </TableHead>
+                    <TableHead className="font-semibold text-center whitespace-nowrap hidden lg:table-cell">
+                      <Button
+                        variant="ghost"
+                        className="p-0 h-auto font-semibold hover:bg-transparent w-full justify-center"
+                        onClick={() => handleSort("deadline")}
+                      >
+                        <div className="flex items-center gap-1 sm:gap-2 justify-center">
+                          <CalendarIcon className="w-4 h-4 hidden sm:block" />
+                          <span className="text-xs sm:text-sm">Deadline</span>
+                          {getSortIcon("deadline")}
+                        </div>
+                      </Button>
+                    </TableHead>
+                    <TableHead className="font-semibold text-center whitespace-nowrap">
+                      <span className="text-xs sm:text-sm">Estado</span>
+                    </TableHead>
+                    <TableHead className="font-semibold text-center whitespace-nowrap">
+                      <span className="text-xs sm:text-sm">Acción</span>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedOffers.map((offer, index) => (
+                    <TableRow
+                      key={offer.id}
+                      className="animate-fade-in hover:bg-accent/50 transition-colors cursor-pointer"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                      onClick={() => handleViewClick(offer)}
+                    >
+                      <TableCell className="font-mono font-medium text-primary text-xs sm:text-sm whitespace-nowrap">
+                        {offer.offer_number}
+                      </TableCell>
+                      <TableCell className="max-w-[120px] sm:max-w-md">
+                        <p className="truncate text-xs sm:text-sm">{offer.description}</p>
+                      </TableCell>
+                      <TableCell className="text-center font-medium text-xs sm:text-sm hidden md:table-cell">
+                        {offer.minimum_units.toLocaleString("es-ES")}
+                      </TableCell>
+                      <TableCell className="text-center text-xs sm:text-sm hidden lg:table-cell whitespace-nowrap">
+                        {offer.deadline
+                          ? format(new Date(offer.deadline), "dd MMM yyyy", { locale: es })
+                          : "-"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {getStatusBadge(offer.status)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1 sm:gap-2 text-xs sm:text-sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewClick(offer);
+                          }}
+                        >
+                          <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">Ver detalle</span>
+                          <span className="sm:hidden">Ver</span>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Nº Oferta"
-                value={filterOfferNumber}
-                onChange={(e) => setFilterOfferNumber(e.target.value)}
-                className="pl-8 h-9"
-              />
-            </div>
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Descripción"
-                value={filterDescription}
-                onChange={(e) => setFilterDescription(e.target.value)}
-                className="pl-8 h-9"
-              />
-            </div>
-            <div>
-              <Popover>
-                <PopoverTrigger asChild>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4">
+                <p className="text-sm text-muted-foreground order-2 sm:order-1">
+                  Mostrando {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedOffers.length)} de {filteredAndSortedOffers.length} ofertas
+                </p>
+                <div className="flex items-center gap-2 order-1 sm:order-2">
                   <Button
                     variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal h-9",
-                      !filterDeadline && "text-muted-foreground"
-                    )}
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {filterDeadline ? format(filterDeadline, "dd MMM yyyy", { locale: es }) : "Deadline hasta"}
+                    <ChevronLeft className="w-4 h-4" />
+                    <span className="hidden sm:inline ml-1">Anterior</span>
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={filterDeadline}
-                    onSelect={setFilterDeadline}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="abierta">Abierta</SelectItem>
-                  <SelectItem value="aplicada">Aplicada</SelectItem>
-                  <SelectItem value="aceptada">Aceptada</SelectItem>
-                  <SelectItem value="rechazada">Rechazada</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {hasActiveFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 gap-1">
-                <X className="w-4 h-4" />
-                Limpiar
-              </Button>
-            )}
-          </div>
-
-          {filteredAndSortedOffers.length === 0 ? (
-            <div className="text-center py-12">
-              <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">
-                {hasActiveFilters ? "No se encontraron ofertas con los filtros aplicados" : "No hay ofertas disponibles"}
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className="rounded-lg border border-border overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/50 hover:bg-muted/50">
-                      <TableHead className="font-semibold whitespace-nowrap">
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum: number;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      return (
                         <Button
-                          variant="ghost"
-                          className="p-0 h-auto font-semibold hover:bg-transparent"
-                          onClick={() => handleSort("offer_number")}
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          className="w-8 h-8 p-0"
+                          onClick={() => setCurrentPage(pageNum)}
                         >
-                          <div className="flex items-center gap-1 sm:gap-2">
-                            <Hash className="w-4 h-4 hidden sm:block" />
-                            <span className="text-xs sm:text-sm">Nº Oferta</span>
-                            {getSortIcon("offer_number")}
-                          </div>
+                          {pageNum}
                         </Button>
-                      </TableHead>
-                      <TableHead className="font-semibold">
-                        <div className="flex items-center gap-1 sm:gap-2">
-                          <FileText className="w-4 h-4 hidden sm:block" />
-                          <span className="text-xs sm:text-sm">Descripción</span>
-                        </div>
-                      </TableHead>
-                      <TableHead className="font-semibold text-center whitespace-nowrap hidden md:table-cell">
-                        <Button
-                          variant="ghost"
-                          className="p-0 h-auto font-semibold hover:bg-transparent w-full justify-center"
-                          onClick={() => handleSort("minimum_units")}
-                        >
-                          <div className="flex items-center gap-1 sm:gap-2 justify-center">
-                            <Package className="w-4 h-4 hidden sm:block" />
-                            <span className="text-xs sm:text-sm">Uds. Mín.</span>
-                            {getSortIcon("minimum_units")}
-                          </div>
-                        </Button>
-                      </TableHead>
-                      <TableHead className="font-semibold text-center whitespace-nowrap hidden lg:table-cell">
-                        <Button
-                          variant="ghost"
-                          className="p-0 h-auto font-semibold hover:bg-transparent w-full justify-center"
-                          onClick={() => handleSort("deadline")}
-                        >
-                          <div className="flex items-center gap-1 sm:gap-2 justify-center">
-                            <CalendarIcon className="w-4 h-4 hidden sm:block" />
-                            <span className="text-xs sm:text-sm">Deadline</span>
-                            {getSortIcon("deadline")}
-                          </div>
-                        </Button>
-                      </TableHead>
-                      <TableHead className="font-semibold text-center whitespace-nowrap">
-                        <span className="text-xs sm:text-sm">Estado</span>
-                      </TableHead>
-                      <TableHead className="font-semibold text-center whitespace-nowrap">
-                        <span className="text-xs sm:text-sm">Acción</span>
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedOffers.map((offer, index) => (
-                      <TableRow
-                        key={offer.id}
-                        className="animate-fade-in hover:bg-accent/50 transition-colors"
-                        style={{ animationDelay: `${index * 50}ms` }}
-                      >
-                        <TableCell className="font-mono font-medium text-primary text-xs sm:text-sm whitespace-nowrap">
-                          {offer.offer_number}
-                        </TableCell>
-                        <TableCell className="max-w-[120px] sm:max-w-md">
-                          <p className="truncate text-xs sm:text-sm">{offer.description}</p>
-                        </TableCell>
-                        <TableCell className="text-center font-medium text-xs sm:text-sm hidden md:table-cell">
-                          {offer.minimum_units.toLocaleString("es-ES")}
-                        </TableCell>
-                        <TableCell className="text-center text-xs sm:text-sm hidden lg:table-cell whitespace-nowrap">
-                          {offer.deadline
-                            ? format(new Date(offer.deadline), "dd MMM yyyy", { locale: es })
-                            : "-"}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {getStatusBadge(offer.status)}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {renderActionButton(offer)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4">
-                  <p className="text-sm text-muted-foreground order-2 sm:order-1">
-                    Mostrando {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedOffers.length)} de {filteredAndSortedOffers.length} ofertas
-                  </p>
-                  <div className="flex items-center gap-2 order-1 sm:order-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      <span className="hidden sm:inline ml-1">Anterior</span>
-                    </Button>
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNum: number;
-                        if (totalPages <= 5) {
-                          pageNum = i + 1;
-                        } else if (currentPage <= 3) {
-                          pageNum = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNum = totalPages - 4 + i;
-                        } else {
-                          pageNum = currentPage - 2 + i;
-                        }
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={currentPage === pageNum ? "default" : "outline"}
-                            size="sm"
-                            className="w-8 h-8 p-0"
-                            onClick={() => setCurrentPage(pageNum)}
-                          >
-                            {pageNum}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                    >
-                      <span className="hidden sm:inline mr-1">Siguiente</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
+                      );
+                    })}
                   </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    <span className="hidden sm:inline mr-1">Siguiente</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
                 </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
-
-      {selectedOffer && (
-        <>
-          <ApplyOfferModal
-            open={applyModalOpen}
-            onOpenChange={setApplyModalOpen}
-            offer={selectedOffer}
-            onSuccess={handleSuccess}
-          />
-          <ViewOfferModal
-            open={viewModalOpen}
-            onOpenChange={setViewModalOpen}
-            offer={selectedOffer}
-            onSuccess={handleSuccess}
-          />
-        </>
-      )}
-    </>
+              </div>
+            )}
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

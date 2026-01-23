@@ -9,7 +9,9 @@ import ResetPassword from "./pages/ResetPassword";
 import SetupPassword from "./pages/SetupPassword";
 import NotFound from "./pages/NotFound";
 import Ofertas from "./pages/Ofertas";
+import OfferDetail from "./pages/OfferDetail";
 import Pedidos from "./pages/Pedidos";
+import OrderDetail from "./pages/OrderDetail";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import Proveedores from "./pages/admin/Proveedores";
 import ProveedorDetalle from "./pages/admin/ProveedorDetalle";
@@ -33,7 +35,9 @@ const App = () => (
           {/* Supplier Dashboard */}
           <Route path="/dashboard" element={<Dashboard />}>
             <Route path="ofertas" element={<Ofertas />} />
+            <Route path="ofertas/:offerId" element={<OfferDetail />} />
             <Route path="pedidos" element={<Pedidos />} />
+            <Route path="pedidos/:orderId" element={<OrderDetail />} />
           </Route>
           
           {/* Admin Dashboard */}
