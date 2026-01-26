@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,8 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Search, FileText } from "lucide-react";
+import { Search, FileText, Eye } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type OfferStatus = "abierta" | "aplicada" | "aceptada" | "rechazada";
 
@@ -27,6 +29,7 @@ interface Offer {
 }
 
 const AdminOfertas = () => {
+  const navigate = useNavigate();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -136,11 +139,16 @@ const AdminOfertas = () => {
                 <TableHead className="text-right">Uds. Mínimas</TableHead>
                 <TableHead>Fecha Límite</TableHead>
                 <TableHead>Estado</TableHead>
+                <TableHead className="text-center">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredOffers.map((offer) => (
-                <TableRow key={offer.id}>
+                <TableRow 
+                  key={offer.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => navigate(`/admin/ofertas/${offer.id}`)}
+                >
                   <TableCell className="font-medium">{offer.offer_number}</TableCell>
                   <TableCell className="max-w-[300px] truncate">
                     {offer.description}
@@ -150,6 +158,20 @@ const AdminOfertas = () => {
                   </TableCell>
                   <TableCell>{formatDate(offer.deadline)}</TableCell>
                   <TableCell>{getStatusBadge(offer.status)}</TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/admin/ofertas/${offer.id}`);
+                      }}
+                      className="gap-1"
+                    >
+                      <Eye className="w-4 h-4" />
+                      Ver
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

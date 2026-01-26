@@ -17,6 +17,8 @@ import Proveedores from "./pages/admin/Proveedores";
 import ProveedorDetalle from "./pages/admin/ProveedorDetalle";
 import AdminOfertas from "./pages/admin/AdminOfertas";
 import AdminPedidos from "./pages/admin/AdminPedidos";
+import AdminOfferDetail from "./pages/admin/AdminOfferDetail";
+import AdminOrderDetail from "./pages/admin/AdminOrderDetail";
 
 const queryClient = new QueryClient();
 
@@ -45,7 +47,9 @@ const App = () => (
             <Route path="proveedores" element={<Proveedores />} />
             <Route path="proveedores/:id" element={<ProveedorDetalle />} />
             <Route path="ofertas" element={<AdminOfertas />} />
+            <Route path="ofertas/:offerId" element={<AdminOfferDetail />} />
             <Route path="pedidos" element={<AdminPedidos />} />
+            <Route path="pedidos/:orderId" element={<AdminOrderDetail />} />
           </Route>
           
           <Route path="*" element={<NotFound />} />
