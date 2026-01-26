@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,8 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Search, ShoppingCart } from "lucide-react";
+import { Search, ShoppingCart, Eye } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface OrderWithDetails {
   id: string;
@@ -33,6 +35,7 @@ interface OrderWithDetails {
 }
 
 const AdminPedidos = () => {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<OrderWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -166,11 +169,16 @@ const AdminPedidos = () => {
                 <TableHead className="text-right">Precio</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead>Fecha</TableHead>
+                <TableHead className="text-center">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredOrders.map((order) => (
-                <TableRow key={order.id}>
+                <TableRow 
+                  key={order.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => navigate(`/admin/pedidos/${order.id}`)}
+                >
                   <TableCell className="font-medium">{order.order_number}</TableCell>
                   <TableCell>{order.supplier?.name || "-"}</TableCell>
                   <TableCell>{order.offer?.offer_number || "-"}</TableCell>
@@ -183,6 +191,20 @@ const AdminPedidos = () => {
                   </TableCell>
                   <TableCell>{getStatusBadge(order.status)}</TableCell>
                   <TableCell>{formatDate(order.created_at)}</TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/admin/pedidos/${order.id}`);
+                      }}
+                      className="gap-1"
+                    >
+                      <Eye className="w-4 h-4" />
+                      Ver
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
