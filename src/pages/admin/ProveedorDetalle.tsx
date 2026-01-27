@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,13 +26,14 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Users, FileText, ShoppingCart, Mail, Check, Clock } from "lucide-react";
+import { ArrowLeft, Plus, Users, FileText, ShoppingCart, Mail, Check, Clock, Upload, Image, Trash2 } from "lucide-react";
 
 interface Supplier {
   id: string;
   name: string;
   family: string;
   average_billing: number;
+  logo_url: string | null;
 }
 
 interface SupplierUser {
@@ -79,6 +80,7 @@ const ProveedorDetalle = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [supplier, setSupplier] = useState<Supplier | null>(null);
   const [users, setUsers] = useState<SupplierUser[]>([]);
@@ -87,6 +89,7 @@ const ProveedorDetalle = () => {
   const [loading, setLoading] = useState(true);
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [newUser, setNewUser] = useState({
     first_name: "",
     last_name: "",
@@ -324,7 +327,118 @@ const ProveedorDetalle = () => {
     return null;
   }
 
-  
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !id) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/jpeg') && !file.type.startsWith('image/png')) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Solo se permiten archivos JPG o PNG.",
+      });
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "El archivo no puede superar 2MB.",
+      });
+      return;
+    }
+
+    setIsUploadingLogo(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${id}.${fileExt}`;
+
+      // Delete old logo if exists
+      if (supplier?.logo_url) {
+        const oldPath = supplier.logo_url.split('/').pop();
+        if (oldPath) {
+          await supabase.storage.from('supplier-logos').remove([oldPath]);
+        }
+      }
+
+      // Upload new logo
+      const { error: uploadError } = await supabase.storage
+        .from('supplier-logos')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('supplier-logos')
+        .getPublicUrl(fileName);
+
+      // Update supplier record
+      const { error: updateError } = await supabase
+        .from('suppliers')
+        .update({ logo_url: publicUrl })
+        .eq('id', id);
+
+      if (updateError) throw updateError;
+
+      setSupplier(prev => prev ? { ...prev, logo_url: publicUrl } : null);
+      toast({
+        title: "Logo actualizado",
+        description: "El logo del proveedor se ha subido correctamente.",
+      });
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo subir el logo.",
+      });
+    } finally {
+      setIsUploadingLogo(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleDeleteLogo = async () => {
+    if (!id || !supplier?.logo_url) return;
+
+    setIsUploadingLogo(true);
+
+    try {
+      const oldPath = supplier.logo_url.split('/').pop();
+      if (oldPath) {
+        await supabase.storage.from('supplier-logos').remove([oldPath]);
+      }
+
+      const { error: updateError } = await supabase
+        .from('suppliers')
+        .update({ logo_url: null })
+        .eq('id', id);
+
+      if (updateError) throw updateError;
+
+      setSupplier(prev => prev ? { ...prev, logo_url: null } : null);
+      toast({
+        title: "Logo eliminado",
+        description: "El logo del proveedor se ha eliminado.",
+      });
+    } catch (error) {
+      console.error("Error deleting logo:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo eliminar el logo.",
+      });
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -333,6 +447,63 @@ const ProveedorDetalle = () => {
         <Button variant="ghost" size="icon" onClick={() => navigate("/admin/proveedores")}>
           <ArrowLeft className="w-4 h-4" />
         </Button>
+        
+        {/* Logo Section */}
+        <div className="relative group">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png"
+            onChange={handleLogoUpload}
+            className="hidden"
+          />
+          {supplier.logo_url ? (
+            <div className="relative">
+              <img
+                src={supplier.logo_url}
+                alt={`Logo de ${supplier.name}`}
+                className="w-16 h-16 object-contain rounded-lg border border-border bg-white"
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-white hover:bg-white/20"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingLogo}
+                >
+                  <Upload className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-white hover:bg-white/20"
+                  onClick={handleDeleteLogo}
+                  disabled={isUploadingLogo}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button
+              variant="outline"
+              className="w-16 h-16 flex flex-col items-center justify-center gap-1 text-muted-foreground"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingLogo}
+            >
+              {isUploadingLogo ? (
+                <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
+              ) : (
+                <>
+                  <Image className="w-5 h-5" />
+                  <span className="text-[10px]">Logo</span>
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+
         <div>
           <h2 className="text-2xl font-bold text-foreground">{supplier.name}</h2>
           <p className="text-muted-foreground">{supplier.family}</p>
