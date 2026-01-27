@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, NavLink, Outlet, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,11 +8,18 @@ import { cn } from "@/lib/utils";
 import logoHbs from "@/assets/logo-hbs.png";
 import { useUserRole } from "@/hooks/useUserRole";
 
+interface Supplier {
+  id: string;
+  name: string;
+  logo_url: string | null;
+}
+
 const Dashboard = () => {
-  const { user, role, loading } = useUserRole();
+  const { user, role, loading, supplierId } = useUserRole();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const [supplier, setSupplier] = useState<Supplier | null>(null);
 
   useEffect(() => {
     if (!loading) {
@@ -23,6 +30,25 @@ const Dashboard = () => {
       }
     }
   }, [user, role, loading, navigate]);
+
+  // Fetch supplier data when supplierId is available
+  useEffect(() => {
+    const fetchSupplier = async () => {
+      if (!supplierId) return;
+      
+      const { data, error } = await supabase
+        .from("suppliers")
+        .select("id, name, logo_url")
+        .eq("id", supplierId)
+        .maybeSingle();
+
+      if (!error && data) {
+        setSupplier(data);
+      }
+    };
+
+    fetchSupplier();
+  }, [supplierId]);
 
   // Redirect to ofertas if at /dashboard
   useEffect(() => {
@@ -59,9 +85,19 @@ const Dashboard = () => {
       <header className="flex-shrink-0 border-b border-border bg-card shadow-card">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <img src={logoHbs} alt="HBS Logo" className="h-10 w-auto" />
+            {supplier?.logo_url ? (
+              <img 
+                src={supplier.logo_url} 
+                alt={`Logo de ${supplier.name}`} 
+                className="h-10 w-auto max-w-[120px] object-contain" 
+              />
+            ) : (
+              <img src={logoHbs} alt="HBS Logo" className="h-10 w-auto" />
+            )}
             <div className="border-l border-border pl-4">
-              <h1 className="font-semibold text-foreground">Portal de Proveedores</h1>
+              <h1 className="font-semibold text-foreground">
+                {supplier?.name || "Portal de Proveedores"}
+              </h1>
               <p className="text-sm text-muted-foreground">{user?.email}</p>
             </div>
           </div>
