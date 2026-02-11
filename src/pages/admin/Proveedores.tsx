@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -12,18 +10,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Building2, ChevronRight } from "lucide-react";
+import { Search, Building2, ChevronRight } from "lucide-react";
 
 interface Supplier {
   id: string;
@@ -37,13 +26,6 @@ const Proveedores = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newSupplier, setNewSupplier] = useState({
-    name: "",
-    family: "",
-    average_billing: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -71,44 +53,6 @@ const Proveedores = () => {
     fetchSuppliers();
   }, []);
 
-  const handleCreateSupplier = async () => {
-    if (!newSupplier.name || !newSupplier.family) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "El nombre y la familia son obligatorios.",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    const { error } = await supabase.from("suppliers").insert({
-      name: newSupplier.name,
-      family: newSupplier.family,
-      average_billing: parseFloat(newSupplier.average_billing) || 0,
-    });
-
-    if (error) {
-      console.error("Error creating supplier:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudo crear el proveedor.",
-      });
-    } else {
-      toast({
-        title: "Proveedor creado",
-        description: "El proveedor se ha creado correctamente.",
-      });
-      setNewSupplier({ name: "", family: "", average_billing: "" });
-      setIsDialogOpen(false);
-      fetchSuppliers();
-    }
-
-    setIsSubmitting(false);
-  };
-
   const filteredSuppliers = suppliers.filter(
     (supplier) =>
       supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -129,7 +73,6 @@ const Proveedores = () => {
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <Skeleton className="h-10 w-64" />
-          <Skeleton className="h-10 w-40" />
         </div>
         <div className="space-y-2">
           {[...Array(5)].map((_, i) => (
@@ -143,83 +86,11 @@ const Proveedores = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Proveedores</h2>
-          <p className="text-muted-foreground">
-            Gestiona los proveedores y sus usuarios
-          </p>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gradient-primary gap-2">
-              <Plus className="w-4 h-4" />
-              Nuevo Proveedor
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Crear Nuevo Proveedor</DialogTitle>
-              <DialogDescription>
-                Introduce los datos del nuevo proveedor
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nombre *</Label>
-                <Input
-                  id="name"
-                  placeholder="Nombre del proveedor"
-                  value={newSupplier.name}
-                  onChange={(e) =>
-                    setNewSupplier({ ...newSupplier, name: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="family">Familia *</Label>
-                <Input
-                  id="family"
-                  placeholder="Familia del proveedor"
-                  value={newSupplier.family}
-                  onChange={(e) =>
-                    setNewSupplier({ ...newSupplier, family: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="billing">Facturación Media (€)</Label>
-                <Input
-                  id="billing"
-                  type="number"
-                  placeholder="0"
-                  value={newSupplier.average_billing}
-                  onChange={(e) =>
-                    setNewSupplier({
-                      ...newSupplier,
-                      average_billing: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsDialogOpen(false)}
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleCreateSupplier}
-                disabled={isSubmitting}
-                className="gradient-primary"
-              >
-                {isSubmitting ? "Creando..." : "Crear Proveedor"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+      <div>
+        <h2 className="text-2xl font-bold text-foreground">Proveedores</h2>
+        <p className="text-muted-foreground">
+          Gestiona los proveedores y sus usuarios
+        </p>
       </div>
 
       {/* Search */}
@@ -243,7 +114,7 @@ const Proveedores = () => {
           <p className="text-muted-foreground mt-1">
             {searchTerm
               ? "No se encontraron proveedores con esos criterios"
-              : "Crea el primer proveedor para empezar"}
+              : "No hay proveedores registrados"}
           </p>
         </div>
       ) : (
