@@ -26,7 +26,8 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Users, FileText, ShoppingCart, Mail, Check, Clock, Upload, Image, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Users, FileText, ShoppingCart, Mail, Check, Clock, Upload, Image, Trash2, Settings } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 interface Supplier {
   id: string;
@@ -34,6 +35,8 @@ interface Supplier {
   family: string;
   average_billing: number;
   logo_url: string | null;
+  privileges: boolean;
+  order_advance_days: number | null;
 }
 
 interface SupplierUser {
@@ -561,6 +564,10 @@ const ProveedorDetalle = () => {
             <ShoppingCart className="w-4 h-4" />
             Pedidos
           </TabsTrigger>
+          <TabsTrigger value="config" className="gap-2">
+            <Settings className="w-4 h-4" />
+            Configuración
+          </TabsTrigger>
         </TabsList>
 
         {/* Users Tab */}
@@ -788,6 +795,66 @@ const ProveedorDetalle = () => {
               </Table>
             </div>
           )}
+        </TabsContent>
+
+        {/* Config Tab */}
+        <TabsContent value="config" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Configuración del Proveedor</CardTitle>
+              <CardDescription>Ajustes específicos para este proveedor</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="privileges">Privilegios</Label>
+                  <p className="text-sm text-muted-foreground">Activar privilegios especiales para este proveedor</p>
+                </div>
+                <Switch
+                  id="privileges"
+                  checked={supplier.privileges}
+                  onCheckedChange={async (checked) => {
+                    const { error } = await supabase
+                      .from('suppliers')
+                      .update({ privileges: checked })
+                      .eq('id', id);
+                    if (error) {
+                      toast({ variant: "destructive", title: "Error", description: "No se pudo actualizar." });
+                    } else {
+                      setSupplier(prev => prev ? { ...prev, privileges: checked } : null);
+                      toast({ title: "Actualizado", description: `Privilegios ${checked ? 'activados' : 'desactivados'}.` });
+                    }
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="order_advance_days">Antelación pedidos (días)</Label>
+                <Input
+                  id="order_advance_days"
+                  type="number"
+                  min={0}
+                  className="max-w-[200px]"
+                  value={supplier.order_advance_days ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value === "" ? null : parseInt(e.target.value, 10);
+                    setSupplier(prev => prev ? { ...prev, order_advance_days: val } : null);
+                  }}
+                  onBlur={async () => {
+                    const { error } = await supabase
+                      .from('suppliers')
+                      .update({ order_advance_days: supplier.order_advance_days })
+                      .eq('id', id);
+                    if (error) {
+                      toast({ variant: "destructive", title: "Error", description: "No se pudo actualizar." });
+                    } else {
+                      toast({ title: "Actualizado", description: "Antelación de pedidos guardada." });
+                    }
+                  }}
+                />
+                <p className="text-sm text-muted-foreground">Días de antelación requeridos para realizar pedidos</p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
