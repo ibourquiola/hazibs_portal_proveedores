@@ -348,6 +348,8 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          order_advance_days: number | null
+          privileges: boolean
           updated_at: string
         }
         Insert: {
@@ -357,6 +359,8 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name: string
+          order_advance_days?: number | null
+          privileges?: boolean
           updated_at?: string
         }
         Update: {
@@ -366,6 +370,8 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          order_advance_days?: number | null
+          privileges?: boolean
           updated_at?: string
         }
         Relationships: []
