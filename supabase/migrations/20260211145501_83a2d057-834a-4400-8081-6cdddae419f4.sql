@@ -1,0 +1,1 @@
+ALTER TABLE public.offer_lines ADD COLUMN confirmed_term date NULL;

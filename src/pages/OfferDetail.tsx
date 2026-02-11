@@ -23,11 +23,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, Send, FileText, Package, Calendar, Euro, Hash } from "lucide-react";
+import { ArrowLeft, Save, Send, FileText, Package, Calendar, Euro, Hash, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 type OfferStatus = "abierta" | "aplicada" | "aceptada" | "rechazada";
 
@@ -55,6 +62,7 @@ interface OfferLine {
 interface LineInput {
   confirmed_units: string;
   confirmed_price: string;
+  confirmed_term: Date | undefined;
 }
 
 const OfferDetail = () => {
@@ -112,10 +120,11 @@ const OfferDetail = () => {
       setLines(linesData || []);
       // Initialize inputs
       const inputs: Record<string, LineInput> = {};
-      (linesData || []).forEach((line: OfferLine) => {
+      (linesData || []).forEach((line: any) => {
         inputs[line.id] = {
           confirmed_units: line.confirmed_units?.toString() || "",
           confirmed_price: line.confirmed_price?.toString() || "",
+          confirmed_term: line.confirmed_term ? new Date(line.confirmed_term) : undefined,
         };
       });
       setLineInputs(inputs);
@@ -241,13 +250,15 @@ const OfferDetail = () => {
         const input = lineInputs[line.id];
         const confirmed_units = input.confirmed_units ? parseFloat(input.confirmed_units) : null;
         const confirmed_price = input.confirmed_price ? parseFloat(input.confirmed_price) : null;
+        const confirmed_term = input.confirmed_term ? format(input.confirmed_term, "yyyy-MM-dd") : null;
 
         await supabase
           .from("offer_lines")
           .update({
             confirmed_units,
             confirmed_price,
-          })
+            confirmed_term,
+          } as any)
           .eq("id", line.id);
       }
 
@@ -287,13 +298,15 @@ const OfferDetail = () => {
         const input = lineInputs[line.id];
         const confirmed_units = parseFloat(input.confirmed_units);
         const confirmed_price = parseFloat(input.confirmed_price);
+        const confirmed_term = input.confirmed_term ? format(input.confirmed_term, "yyyy-MM-dd") : null;
 
         await supabase
           .from("offer_lines")
           .update({
             confirmed_units,
             confirmed_price,
-          })
+            confirmed_term,
+          } as any)
           .eq("id", line.id);
       }
 
@@ -436,6 +449,9 @@ const OfferDetail = () => {
                     <TableHead className="text-right whitespace-nowrap bg-primary/5">
                       Precio Confirmado
                     </TableHead>
+                    <TableHead className="text-center whitespace-nowrap bg-primary/5">
+                      Plazo
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -496,6 +512,39 @@ const OfferDetail = () => {
                             <p className="text-xs text-destructive">{errors[line.id].price}</p>
                           )}
                         </div>
+                      </TableCell>
+                      <TableCell className="bg-primary/5">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              disabled={isReadOnly}
+                              className={cn(
+                                "w-36 justify-start text-left font-normal",
+                                !lineInputs[line.id]?.confirmed_term && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {lineInputs[line.id]?.confirmed_term
+                                ? format(lineInputs[line.id].confirmed_term!, "dd/MM/yyyy")
+                                : "Seleccionar"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarComponent
+                              mode="single"
+                              selected={lineInputs[line.id]?.confirmed_term}
+                              onSelect={(date) =>
+                                setLineInputs((prev) => ({
+                                  ...prev,
+                                  [line.id]: { ...prev[line.id], confirmed_term: date },
+                                }))
+                              }
+                              initialFocus
+                              className={cn("p-3 pointer-events-auto")}
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </TableCell>
                     </TableRow>
                   ))}
