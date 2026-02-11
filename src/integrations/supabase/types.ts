@@ -74,6 +74,7 @@ export type Database = {
       offer_lines: {
         Row: {
           confirmed_price: number | null
+          confirmed_term: string | null
           confirmed_units: number | null
           created_at: string
           deadline: string | null
@@ -87,6 +88,7 @@ export type Database = {
         }
         Insert: {
           confirmed_price?: number | null
+          confirmed_term?: string | null
           confirmed_units?: number | null
           created_at?: string
           deadline?: string | null
@@ -100,6 +102,7 @@ export type Database = {
         }
         Update: {
           confirmed_price?: number | null
+          confirmed_term?: string | null
           confirmed_units?: number | null
           created_at?: string
           deadline?: string | null
