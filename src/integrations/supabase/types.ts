@@ -350,6 +350,7 @@ export type Database = {
           name: string
           order_advance_days: number | null
           privileges: boolean
+          supplier_code: string | null
           updated_at: string
         }
         Insert: {
@@ -361,6 +362,7 @@ export type Database = {
           name: string
           order_advance_days?: number | null
           privileges?: boolean
+          supplier_code?: string | null
           updated_at?: string
         }
         Update: {
@@ -372,6 +374,7 @@ export type Database = {
           name?: string
           order_advance_days?: number | null
           privileges?: boolean
+          supplier_code?: string | null
           updated_at?: string
         }
         Relationships: []

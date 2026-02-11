@@ -19,6 +19,7 @@ interface Supplier {
   name: string;
   family: string;
   average_billing: number;
+  supplier_code: string | null;
   created_at: string;
 }
 
@@ -121,7 +122,8 @@ const Proveedores = () => {
         <div className="border border-border rounded-lg overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow>
+            <TableRow>
+                <TableHead>Código</TableHead>
                 <TableHead>Nombre</TableHead>
                 <TableHead>Familia</TableHead>
                 <TableHead className="text-right">Facturación Media</TableHead>
@@ -135,6 +137,7 @@ const Proveedores = () => {
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() => navigate(`/admin/proveedores/${supplier.id}`)}
                 >
+                  <TableCell className="text-muted-foreground">{supplier.supplier_code || "—"}</TableCell>
                   <TableCell className="font-medium">{supplier.name}</TableCell>
                   <TableCell>{supplier.family}</TableCell>
                   <TableCell className="text-right">
